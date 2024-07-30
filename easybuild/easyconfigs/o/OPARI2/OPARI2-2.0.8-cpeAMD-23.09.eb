@@ -31,6 +31,10 @@ It surrounds OpenMP directives and runtime library calls with calls
 to the POMP2 measurement interface.
 """
 
+docurls = [
+    'https://perftools.pages.jsc.fz-juelich.de/cicd/opari2/tags/latest/html/',
+]
+
 toolchain = {'name': 'cpeAMD', 'version': '23.09'}
 toolchainopts = {'pic': True}
 
@@ -42,13 +46,39 @@ checksums = [
 
 builddependencies = [
     ('buildtools', '%(toolchain_version)s', '', True),
+    ('gcc-mixed',  EXTERNAL_MODULE),
 ]
 
-configopts = '--enable-shared'
+# Likely not needed, but just to be sure that the link options are not picked up...
+preconfigopts  = 'module unload cray-libsci && '
+
+configopts  = '"CC_FOR_BUILD=gcc" "CXX_FOR_BUILD=g++" "F77_FOR_BUILD=gfortran" "FC_FOR_BUILD=gfortran" '
+configopts += '"CFLAGS_FOR_BUILD=-O2 -g -march=znver3" "CXXFLAGS_FOR_BUILD=-O2 -g -march=znver3" '
+configopts += '"FFLAGS_FOR_BUILD=-O2 -g -march=znver3" "FCFLAGS_FOR_BUILD=-O2 -g -march=znver3" '
+#configopts  = '"CC_FOR_BUILD=cc" "CXX_FOR_BUILD=CC" "F77_FOR_BUILD=ftn" "FC_FOR_BUILD=ftn" '
+#configopts += '"CFLAGS_FOR_BUILD=$CFLAGS -g" "CXXFLAGS_FOR_BUILD=$CXXFLAGS -g" '
+#configopts += '"FFLAGS_FOR_BUILD=$FFLAGS -g" "FCFLAGS_FOR_BUILD=$FCFLAGS -g" '
+
+prebuildopts = 'module unload cray-libsci && '
+buildopts = 'V=1'
+
+runtest = 'check'
+
+installopts = 'V=1'
+
+postinstallcmds = [
+    'mkdir -p %(installdir)s/share/licenses/%(name)s && cp AUTHORS ChangeLog COPYING OPEN_ISSUES README THANKS %(installdir)s/share/licenses/%(name)s',  
+]
 
 sanity_check_paths = {
-    'files': ['bin/opari2', 'include/opari2/pomp2_lib.h'],
-    'dirs': [],
+    'files': ['bin/opari2', 'bin/opari2-config', 'include/opari2/pomp2_lib.h',
+              f'share/licenses/{name}/COPYING'],
+    'dirs':  ['share/opari2/devel'],
 }
+
+sanity_check_commands = [
+    'opari2 --help',
+    'opari2-config --help',
+]
 
 moduleclass = 'perf'
