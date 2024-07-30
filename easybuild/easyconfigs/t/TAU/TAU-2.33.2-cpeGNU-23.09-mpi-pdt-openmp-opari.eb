@@ -1,0 +1,107 @@
+easyblock = 'EB_TAULUMI'
+
+local_TAU_version =          '2.33.2'        # https://www.cs.uoregon.edu/research/tau/downloads.php
+
+local_libunwind_version  =   '1.6.2'         # http://download.savannah.nongnu.org/releases/libunwind/
+local_zlib_version =         '1.2.13'        # https://zlib.net/
+
+local_libbfd_version =       '2.42'          # https://ftp.gnu.org/gnu/binutils/
+local_OTF2_version =         '3.0.3'         # https://www.vi-hps.org/projects/score-p/
+local_PDT_version =          '3.25.2'        # https://www.cs.uoregon.edu/research/pdt/downloads.php
+
+name =          'TAU'
+version =       local_TAU_version
+versionsuffix = '-mpi-pdt-openmp-opari'
+
+homepage = 'https://www.cs.uoregon.edu/research/tau/home.php'
+
+whatis = [
+   'Description: TAU is a portable profiling and tracing toolkit for performance analysis of parallel programs written in Fortran, C, C++, UPC, Java, Python.'
+]
+
+description = """
+TAU Performance System® is a portable profiling and tracing toolkit for 
+performance analysis of parallel programs written in Fortran, C, C++, UPC, 
+Java, Python.
+
+TAU (Tuning and Analysis Utilities) is capable of gathering performance 
+information through instrumentation of functions, methods, basic blocks, and 
+statements as well as event-based sampling. All C++ language features are 
+supported including templates and namespaces. The API also provides selection 
+of profiling groups for organizing and controlling instrumentation. The 
+instrumentation can be inserted in the source code using an automatic 
+instrumentor tool based on the Program Database Toolkit (PDT), dynamically 
+using DyninstAPI, at runtime in the Java Virtual Machine, or manually using 
+the instrumentation API.
+
+TAU's profile visualization tool, paraprof, provides graphical displays of 
+all the performance analysis results, in aggregate and single 
+node/context/thread forms. The user can quickly identify sources of performance 
+bottlenecks in the application using the graphical interface. In addition, 
+TAU can generate event traces that can be displayed with the Vampir, Paraver 
+or JumpShot trace visualization tools.
+
+TAU really needs to be configured specifically for your projects and with the
+tools that you will use, so this module/easyconfig is just an example.
+This version has been configured with
+-   OpenMP enabled and support for the included OPARI2
+-   MPI support
+-   Support for PDT
+-   Support for OTF2
+"""
+
+docurls = [
+    'Web manuals at https://www.cs.uoregon.edu/research/tau/docs.php',
+]
+
+toolchain = {'name': 'cpeGNU', 'version': '23.09'}
+
+# https://www.cs.uoregon.edu/research/tau/tau_releases/tau-2.33.2.tar.gz
+sources = [SOURCELOWER_TAR_GZ]
+source_urls = ['https://www.cs.uoregon.edu/research/tau/tau_releases']
+patches = [f'TAU-{version}_craynl_opari2.patch']
+checksums = [
+    '8ee81fe75507612379f70033183bed2a90e1245554b2a78196b6c5145da44f27',  # tau-2.33.2.tar.gz
+]
+
+builddependencies = [
+    ('buildtools', '%(toolchain_version)s', '', SYSTEM),
+]
+
+dependencies = [
+    ('libunwind', local_libunwind_version),
+    ('zlib',      local_zlib_version),       # Not really needed as it comes in through libbfd anyway.
+    ('libbfd',    local_libbfd_version),
+    ('PDT',       local_PDT_version),   
+    ('OTF2',      local_OTF2_version),
+]
+
+skipsteps = ['build', 'test']
+
+tauarch = 'craycnl'
+
+prefix_opt = '-prefix='
+preconfigopts  = 'module unload cray-libsci perftools-base && '
+preconfigopts += 'sed -i -e \'s|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\\1=cc|\' -e \'s|^\(#CRAYCNL#TAU_CXX_FE\)=g++|\\1=CC|\' include/Makefile.skel && '
+configopts  = ''
+configopts += '-mpi -mpilibrary=no '
+configopts += '-openmp -opari '
+configopts += '-bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB '
+configopts += '-pdt=$EBROOTPDT -pdt_c++=CC '
+configopts += '-otf=$EBROOTOTF2 '
+
+parallel = 16
+
+#preinstallopts = 'module unload cray-libsci perftools-base && '
+
+#postinstallcmds = [
+#    'ln -s %(installdir)s/bin %(installdir)s/craycnl/bin',
+#    'ln -s %(installdir)s/lib %(installdir)s/craycnl/lib',
+#]
+
+sanity_check_paths = {
+    'files': ['bin/opari2'],
+    'dirs':  [],
+}
+
+moduleclass = 'perf'

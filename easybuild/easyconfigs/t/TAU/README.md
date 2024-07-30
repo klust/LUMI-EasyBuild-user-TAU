@@ -135,8 +135,6 @@ as that of PDT, or even worse.
             they may run in the above problem.
 
 
-
-
 ## EasyBuild
 
 -   [There is no support for TAU in the EasyBuilders repository](https://docs.easybuild.io/version-specific/supported-software/#t)
@@ -156,3 +154,8 @@ comes with the GPU software stack or other system software.
 -   In principle one needs to register and then download TAU, but from the Spack
     `package.py` file we see that a direct download is possible using the URL
     `https://www.cs.uoregon.edu/research/tau/tau_releases/tau-2.33.2.tar.gz`.
+    
+-   As this package has already wants to write in the installation directory
+    during the configure step, it needs a custom EasyBlock (similar procedure
+    as for PDT).
+
