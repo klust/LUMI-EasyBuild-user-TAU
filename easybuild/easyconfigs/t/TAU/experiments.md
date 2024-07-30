@@ -143,7 +143,7 @@ The following have worked
         -arch=craycnl -useropt="-O2 -g" \
         -c++=CC -cc=cc -fortran=ftn -pdt_c++=CC \
         -mpi -mpilibrary=no \
-        -openmp -opari=$EBROOTOPARI2 \
+        -openmp -opari \
         -pdt=$EBROOTPDT -bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB \
         -otf=$EBROOTOTF2
     ```
@@ -161,7 +161,7 @@ The following have worked
     The result is that depending upon the order of loading modules, Score-P or TAU may be using a different 
     `opari2` executable than expected if the full path is not hardcoded in the code that calls `opari2`.
 
-    So we give it the compiler instead:
+    Giving it the compiler also does not fully work:
 
     ```bash
     sed -i -e 's|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\1=cc|' -e 's|^\(#CRAYCNL#TAU_CXX_FE\)=g++|\1=CC|' include/Makefile.skel
@@ -174,8 +174,12 @@ The following have worked
         -otf=$EBROOTOTF2
     ```
 
-    And even that turns out to be not OK, but then due to bugs in the OPARI2 installation that eventually falls
-    back upon the system gcc compiler...
+    Final solution: Edit a line before calling `configure` in `utils/include/Makefile.skel' (shown broken up here
+    but should be a single line)): 
+
+    ```bash
+    #CRAY_FORTRAN#CRAY_OPARI2_CONFIG_CRAYCNL= --with-compiler-suite=cray CXXFLAGS_FOR_BUILD="-O2 -g" CC_FOR_BUILD=cc CXX_FOR_BUILD=CC FC_FOR_BUILD=ftn FFLAGS_FOR_BUILD="-O2 -g" FC=ftn FCFLAGS_FOR_BUILD="-O2 -g" LIBS_FOR_BUILD= F77=ftn MPIF77=ftn CC=cc CXX=CC MPICXX=CC MPIFC=ftn CPPFLAGS_FOR_BUILD= CFLAGS_FOR_BUILD="-O2 -g" LDFLAGS_FOR_BUILD= MPICC=cc --enable-shared ac_scorep_platform=cray ac_scorep_platform_data_provided=yes ac_scorep_cross_compiling=yes --cache-file=/dev/null --srcdir=.. #ENDIF#
+    ```
 
 
 
@@ -184,7 +188,7 @@ sed -i -e 's|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\1=cc|' -e 's|^\(#CRAYCNL#TAU_CXX_FE\)=
 ./configure -prefix=$installdir \
     -c++=CC -cc=cc -fortran=ftn -pdt_c++=CC \
     -mpi -mpilibrary=no \
-    -openmp -opari=$EBROOTOPARI2/bin \
+    -openmp -opari \
     -pdt=$EBROOTPDT -bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB \
     -otf=$EBROOTOTF2
 ```
@@ -199,7 +203,7 @@ In the uncompressed TAU source code directory:
 tc='cpeCray'
 tcversion='23.09'
 module load LUMI/$tcversion partition/L
-module load OPARI2/2.0.8-$tc-$tcversion OTF2/3.0.3-$tc-$tcversion libbfd/2.42-$tc-$tcversion
+module load OTF2/3.0.3-$tc-$tcversion libbfd/2.42-$tc-$tcversion
 module load libunwind/1.6.2-$tc-$tcversion PDT/3.25.2-$tc-$tcversion
 module load gcc-mixed        # So that hopefully when the wrappers are not detected, a recent version of gcc would be used.
 module unload cray-libsci    # To not add those link lines to the TAU wrappers
@@ -212,14 +216,13 @@ sed -i -e 's|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\1=cc|' -e 's|^\(#CRAYCNL#TAU_CXX_FE\)=
 ./configure -prefix=$installdir \
     -c++=CC -cc=cc -fortran=ftn -pdt_c++=CC \
     -mpi -mpilibrary=no \
-    -openmp -opari -oparicomp=cc \
+    -openmp -opari \
     -pdt=$EBROOTPDT -bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB \
     -otf=$EBROOTOTF2
 ```
 
 It simply works without new problems that we have not yet observed with `cpeGNU`.
 
-TODO: Double-check what compiler is used to compile OPARI2.
 
 
 ## Experiment 3: Using cpeAOCC
@@ -230,7 +233,7 @@ In the uncompressed TAU source code directory:
 tc='cpeAOCC'
 tcversion='23.09'
 module load LUMI/$tcversion partition/L
-module load OPARI2/2.0.8-$tc-$tcversion OTF2/3.0.3-$tc-$tcversion libbfd/2.42-$tc-$tcversion
+module load OTF2/3.0.3-$tc-$tcversion libbfd/2.42-$tc-$tcversion
 module load libunwind/1.6.2-$tc-$tcversion PDT/3.25.2-$tc-$tcversion
 module load gcc-mixed        # So that hopefully when the wrappers are not detected, a recent version of gcc would be used.
 module unload cray-libsci    # To not add those link lines to the TAU wrappers
@@ -243,7 +246,7 @@ sed -i -e 's|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\1=cc|' -e 's|^\(#CRAYCNL#TAU_CXX_FE\)=
 ./configure -prefix=$installdir \
     -c++=CC -cc=cc -fortran=ftn -pdt_c++=CC \
     -mpi -mpilibrary=no \
-    -openmp -opari -oparicomp=cc \
+    -openmp -opari \
     -pdt=$EBROOTPDT -bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB \
     -otf=$EBROOTOTF2
 ```
