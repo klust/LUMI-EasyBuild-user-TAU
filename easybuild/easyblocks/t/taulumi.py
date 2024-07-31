@@ -18,6 +18,7 @@ import easybuild.tools.toolchain as toolchain
 from easybuild.framework.easyconfig import CUSTOM
 from easybuild.tools.build_log import EasyBuildError
 from easybuild.tools.filetools import symlink
+from easybuild.tools.modules import get_software_root, get_software_version
 
 
 def find_arch_dir(install_dir):
@@ -55,7 +56,7 @@ class EB_TAULUMI(ConfigureMake):
         extra_vars.update({
             'tauarch': [None,  "Architecture for TAU (auto-determined by TAU if absent).", CUSTOM],
             'useropt': [None,  "Overwrite the automatically determined value for the useropt option.", CUSTOM],
-            'opari':   [False, "Include OPARI2 support (built-in)", CUSTOM],
+            'opari2':   [False, "Include OPARI2 support (built-in)", CUSTOM],
         })
         return extra_vars
 
@@ -68,28 +69,79 @@ class EB_TAULUMI(ConfigureMake):
         # Process the tauarch option for -arch
         if self.cfg['tauarch'] is not None:
             self.cfg.update('configopts', '-arch=%s' % self.cfg['tauarch'])
+            self.log.info('TAU configuration: Architecture `-arch=%s` manually specified through EasyConfig parameter tauarch.')
+        else:
+            self.log.info('TAU configuration: Automatic architecture detection by the configure script, no `-arch` flag used.')
 
         # TAU's configure script ignores CFLAGS/CXXFLAGS set in the environment,
         # but allows to pass in custom flags via configure option
         if self.cfg['useropt']:
             useropt = self.cfg['useropt']
+            self.log.info(f'TAU configuration: Value "{useropt}" for -useropt specified through EasyConfig parameter `useropt`.')
         else:
             useropt = os.getenv('CXXFLAGS')
+            self.log.info('TAU configuration: CXXFLAGS found, automatically configuring `-useropt`.')
             if self.toolchain.options['pic']:
                 useropt += ' -fPIC'
+            if self.toolchain.options['debug']:
+                self.log.info('TAU configuration: Debug symbol support requested via toolchainopts "debug", added automatically to `-useropt` via EasyBuild CXXFLAGS.')
         if useropt is not None:
-            self.cfg.update('configopts', f'-useropt="{useropt} -g"')
+            self.cfg.update('configopts', f'-useropt="{useropt}"')
+        else:
+            self.cfg.update('TAU configuration: No `-useropt` generated as the EasyConfig parameter `useropt` is not given and CXXFLAGS could not be found in the environment.')
             
         # Add the compiler names.
         comp_cc = os.getenv('CC')
         if comp_cc is not None:
             self.cfg.update('configopts', f'-cc={comp_cc}')
+            self.log.info(f'TAU configuration: Found C compiler name, setting `-cc="{comp_cc}"`.')
+        else:
+            self.log.info('TAU configuration: C compiler name could not be found in the environment (CC), not setting `-cc`')
         comp_cxx = os.getenv('CXX')
         if comp_cc is not None:
             self.cfg.update('configopts', f'-c++={comp_cxx}')
+            self.log.info(f'TAU configuration: Found C++ compiler name, setting `-c++="{comp_cxx}"`.')
+        else:
+            self.log.info('TAU configuration: C++ compiler name could not be found in the environment (CXX), not setting `-c++`')
         comp_fc = os.getenv('FC')
         if comp_fc is not None:
             self.cfg.update('configopts', f'-fortran={comp_fc}')
+            self.log.info(f'TAU configuration: Found Fortran compiler name through $FC, setting `-fortran="{comp_fc}"`.')
+        else:
+            self.log.info('TAU configuration: Fortran compiler name could not be found in the environment (FC), not setting `-fortran`')
+            
+        # Include MPI support?
+        if self.toolchain.options['usempi']:
+            self.cfg.update('configopts', '-mpi -mpilibrary=no')
+            self.log.info('TAU configuration: MPI support requested through toolchainopts, adding "-mpi -mpilibrary=no".')
+        else:
+            self.log.info('TAU configruation: MPI support not included (use toolchainopt `usempi` to do so).')
+            
+        # Include OpenMP support?
+        if self.toolchain.options['openmp']:
+            self.cfg.update('configopts', '-openmp')
+            self.log.info('TAU configuration: OpenMP support requested through toolchainopts, adding "-openmp".')
+        else:
+            self.log.info('TAU configuration: OpenMP support not included (use toolchainopt `openmp` to do so).')
+            
+        # OPARI2 support for TAU? Note that TAU will build this itself, there seems to
+        # be no way to pick it up from an external dependency
+        # TODO: Does this make sense without -openmp?
+        if self.cfg['opari2']:
+            self.cfg.update('configopts', '-opari')
+            self.log.info('TAU configuration: OPARI2 support requested via opari2 EasyConfig parameter, adding "-opari" which will enable `-openmp` internally in configure if not given.')
+        else:
+            self.log.info('TAU configuration: OPARI2 support not requested (use `opari2` EasyConfig parameter).')
+            
+        # Add zlib support (always through a dependency, auto-download not supported 
+        # by this EasyBlock).
+        if get_software_root('zlib'):
+            self.cfg.update('configopts', '-zlib="$EBROOTZLIB"')
+            self.log.info('TAU configuration: zlib support requested through dependencies, adding `-zlib="$EBROOTZLIB"`.')
+
+#        if get_software_root('Boost'):
+#            external_libs_list.append('boost')
+
 
         # Configure creates required subfolders in installdir, so create first (but only once, during first iteration)
         if self.iter_idx == 0:

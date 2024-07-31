@@ -55,6 +55,11 @@ docurls = [
 ]
 
 toolchain = {'name': 'cpeGNU', 'version': '23.09'}
+toolchainopts = {
+    'debug': True,  # Ensures that -g is added to useropt unless the useropt configuration parameter is used.
+    'usempi': True, # Build TAU with MPI support
+    'openmp': True, # Build TAU with OpenMP support (-openmp configuration option).
+}
 
 # https://www.cs.uoregon.edu/research/tau/tau_releases/tau-2.33.2.tar.gz
 sources = [SOURCELOWER_TAR_GZ]
@@ -79,14 +84,13 @@ dependencies = [
 skipsteps = ['build', 'test']
 
 tauarch = 'craycnl'
+opari2 = True
 
 prefix_opt = '-prefix='
 preconfigopts  = 'module unload cray-libsci perftools-base && '
 preconfigopts += 'sed -i -e \'s|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\\1=cc|\' -e \'s|^\(#CRAYCNL#TAU_CXX_FE\)=g++|\\1=CC|\' include/Makefile.skel && '
 configopts  = ''
-configopts += '-mpi -mpilibrary=no '
-configopts += '-openmp -opari '
-configopts += '-bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND -zlib=$EBROOTZLIB '
+configopts += '-bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND '
 configopts += '-pdt=$EBROOTPDT -pdt_c++=CC '
 configopts += '-otf=$EBROOTOTF2 '
 
