@@ -158,4 +158,22 @@ comes with the GPU software stack or other system software.
 -   As this package has already wants to write in the installation directory
     during the configure step, it needs a custom EasyBlock (similar procedure
     as for PDT).
+    
+-   The EasyBlock:
+
+    -   Configure options set based on:
+    
+        -   `toolchainopts`: MPI (`-mpi`) and OpenMP (`-openmp`) support
+         
+        -   Extra EasyConfig parameters: TAU architecture, option to overwrite `-useropt` 
+            and inclusion of OPARI2.
+             
+        -   Dependencies that are loaded for packages where TAU can use external dependencies.
+         
+    -   Contrary to the PDT EasyBlock, we chose to implement a build step. It does call
+        `make install` though as `make` without a target is in fact equivalent to `make all`
+        which itself is then again equivalent to `make install`.
+        
+    -   All that the install step now still does, is create symbolic links `bin` and `lib`
+        to the corresponding subdirectories in `craycnl`.
 

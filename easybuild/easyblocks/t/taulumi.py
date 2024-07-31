@@ -178,9 +178,14 @@ class EB_TAULUMI(ConfigureMake):
         super(EB_TAULUMI, self).configure_step()
 
     def build_step(self):
-        """Skip build step"""
-        # `make install` runs `make all` which runs `make clean`, so no point in doing a make first
-        pass
+        """
+        Need to do a make install right away as the default action of make would be 
+        building the target all which in turns simply builds the target install.
+        """
+        
+        self.cfg.update('build_cmd_targets', 'install')
+        
+        super(EB_TAULUMI, self).build_step()
 
     def make_installdir(self):
         """Skip creating installation directory, already done in configure step"""

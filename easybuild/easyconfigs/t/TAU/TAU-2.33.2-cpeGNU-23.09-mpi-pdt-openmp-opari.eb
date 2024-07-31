@@ -81,7 +81,7 @@ dependencies = [
     ('OTF2',      local_OTF2_version),
 ]
 
-#skipsteps = ['build', 'test']
+skipsteps = ['test']
 
 tauarch = 'craycnl'
 opari2 = True
@@ -94,8 +94,6 @@ preconfigopts += 'sed -i -e \'s|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\\1=cc|\' -e \'s|^\(
 parallel = 16
 
 prebuildopts = 'module unload cray-libsci perftools-base && '
-
-preinstallopts = 'module unload cray-libsci perftools-base && '
 
 #postinstallcmds = [
 #    'ln -s %(installdir)s/bin %(installdir)s/craycnl/bin',
