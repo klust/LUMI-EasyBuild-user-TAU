@@ -138,11 +138,39 @@ class EB_TAULUMI(ConfigureMake):
         if get_software_root('zlib'):
             self.cfg.update('configopts', '-zlib="$EBROOTZLIB"')
             self.log.info('TAU configuration: zlib support requested through dependencies, adding `-zlib="$EBROOTZLIB"`.')
+        else:
+            self.log.info('TAU configuration: zlib support (`-zlib`) was not added as it was not found as a dependency and download is not supported by this EasyBlock.')
 
-#        if get_software_root('Boost'):
-#            external_libs_list.append('boost')
-
-
+        # Add libbfd (binutils) support (always through a dependency, auto-download not supported 
+        # by this EasyBlock).
+        if get_software_root('libbfd'):
+            self.cfg.update('configopts', '-bfd="$EBROOTLIBBFD"')
+            self.log.info('TAU configuration: libbfd (binutils) support requested through dependencies, adding `-bfd="$EBROOTLIBBFD"`.')
+        else:
+            self.log.info('TAU configuration: libbfd (binutils) support (`-bfd`) was not added as it was not found as a dependency and download is not supported by this EasyBlock.')
+       
+        # Add libunwind support (always through a dependency, auto-download not supported 
+        # by this EasyBlock).
+        if get_software_root('libunwind'):
+            self.cfg.update('configopts', '-unwind="$EBROOTLIBUNWIND"')
+            self.log.info('TAU configuration: libunwind support requested through dependencies, adding `-unwind="$EBROOTLIBUNWIND"`.')
+        else:
+            self.log.info('TAU configuration: libunwind support (`-unwind`) was not added as it was not found as a dependency and download is not supported by this EasyBlock.')
+       
+        # Add Open Trace Format support (always through OTF2 as a dependency)
+        if get_software_root('OTF2'):
+            self.cfg.update('configopts', '-otf="$EBROOTOTF2"')
+            self.log.info('TAU configuration: OTF support requested through dependencies, adding `-otf="$EBROOTOTF2"`.')
+        else:
+            self.log.info('TAU configuration: OTF support (`-otf`) was not added as it was not found as a dependency, so no support included.')
+       
+        # Add PRogram Database Toolkit support (always through PDT as a dependency)
+        if get_software_root('PDT'):
+            self.cfg.update('configopts', '-pdt="$EBROOTPDT"')
+            self.log.info('TAU configuration: PDT support requested through dependencies, adding `-pdt="$EBROOTPDT"`.')
+        else:
+            self.log.info('TAU configuration: PDT support (`-pdt`) was not added as it was not found as a dependency, so no support included.')
+       
         # Configure creates required subfolders in installdir, so create first (but only once, during first iteration)
         if self.iter_idx == 0:
             super(EB_TAULUMI, self).make_installdir()

@@ -81,7 +81,7 @@ dependencies = [
     ('OTF2',      local_OTF2_version),
 ]
 
-skipsteps = ['build', 'test']
+#skipsteps = ['build', 'test']
 
 tauarch = 'craycnl'
 opari2 = True
@@ -89,14 +89,13 @@ opari2 = True
 prefix_opt = '-prefix='
 preconfigopts  = 'module unload cray-libsci perftools-base && '
 preconfigopts += 'sed -i -e \'s|^\(#CRAYCNL#TAU_CC_FE\)=gcc|\\1=cc|\' -e \'s|^\(#CRAYCNL#TAU_CXX_FE\)=g++|\\1=CC|\' include/Makefile.skel && '
-configopts  = ''
-configopts += '-bfd=$EBROOTLIBBFD -unwind=$EBROOTLIBUNWIND '
-configopts += '-pdt=$EBROOTPDT -pdt_c++=CC '
-configopts += '-otf=$EBROOTOTF2 '
+#configopts = '-pdt_c++=CC '
 
 parallel = 16
 
-#preinstallopts = 'module unload cray-libsci perftools-base && '
+prebuildopts = 'module unload cray-libsci perftools-base && '
+
+preinstallopts = 'module unload cray-libsci perftools-base && '
 
 #postinstallcmds = [
 #    'ln -s %(installdir)s/bin %(installdir)s/craycnl/bin',
