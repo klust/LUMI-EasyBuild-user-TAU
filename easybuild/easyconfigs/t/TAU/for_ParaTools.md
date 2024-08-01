@@ -35,9 +35,7 @@
     From the output of ldd I get the impression that you simply used the 
     system gcc to build the whole package?
     
-    I am currently building in the project where I do all software development
-    for LUST but I can move that to our joint project so that I can better show
-    how we put software in our software stacks.
-    
-*   What options and modules did you use for the builds of TAU?        
-        
+*   What options and modules did you use for the builds of TAU?
+    Which modules were loaded and what `configure` command line was used?   
+
+*   Are there proper automated tests to quickly check if a build is OK?     
